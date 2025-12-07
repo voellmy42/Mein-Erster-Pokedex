@@ -2,17 +2,23 @@
 <html lang="de">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Dein Erster Pokedex</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
-      body {
-        font-family: 'Fredoka', sans-serif;
-        background-color: #111827; /* Dark background outside the app wrapper */
+      
+      html, body {
+        height: 100%;
+        width: 100%;
         margin: 0;
         padding: 0;
         overflow: hidden; /* Prevent body scroll, handle in app */
+        background-color: #111827;
+      }
+
+      body {
+        font-family: 'Fredoka', sans-serif;
       }
       
       /* --- Animations --- */
@@ -87,5 +93,6 @@
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
   </body>
 </html>

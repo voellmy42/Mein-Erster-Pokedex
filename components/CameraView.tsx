@@ -70,9 +70,10 @@ export const CameraView: React.FC<CameraViewProps> = ({ onCapture, onClose }) =>
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+    // Use 100dvh for mobile
+    <div className="fixed top-0 left-0 w-full h-[100dvh] z-50 bg-black flex flex-col">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent">
+      <div className="absolute top-0 left-0 right-0 p-6 pt-[max(24px,env(safe-area-inset-top))] flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent">
         <button 
           onClick={onClose}
           className="text-white bg-red-600 hover:bg-red-700 px-6 py-3 rounded-2xl font-black shadow-lg border-2 border-red-400 text-lg flex items-center gap-2 active:scale-95 transition-transform"
@@ -119,8 +120,8 @@ export const CameraView: React.FC<CameraViewProps> = ({ onCapture, onClose }) =>
         )}
       </div>
 
-      {/* Controls */}
-      <div className="h-40 bg-black flex items-center justify-center gap-10 pb-8 pt-6">
+      {/* Controls with Safe Area Padding */}
+      <div className="h-40 bg-black flex items-center justify-center gap-10 pb-[max(32px,env(safe-area-inset-bottom))] pt-6">
         {/* Gallery Button */}
         <label className="w-16 h-16 flex items-center justify-center bg-gray-800 rounded-2xl cursor-pointer hover:bg-gray-700 active:scale-95 transition-all border-2 border-gray-700">
           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

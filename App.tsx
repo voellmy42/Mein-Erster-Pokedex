@@ -307,7 +307,8 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-full bg-gradient-to-br from-indigo-100 via-purple-50 to-blue-100 animate-gradient-xy flex justify-center selection:bg-red-200">
+    // Use 100dvh for mobile browsers to avoid issues with address bar
+    <div className="h-[100dvh] w-full bg-gradient-to-br from-indigo-100 via-purple-50 to-blue-100 animate-gradient-xy flex justify-center selection:bg-red-200">
       <div className="w-full max-w-lg bg-white/40 backdrop-blur-xl shadow-2xl relative flex flex-col h-full overflow-hidden">
       
         {/* === HEADER (Slim Design) === */}
@@ -773,7 +774,8 @@ export default function App() {
 
         {/* === FOOTER DOCK (Slim Grip) === */}
         {appState !== AppState.CAMERA && (
-            <footer className="h-20 bg-gray-900 rounded-t-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex items-center justify-center relative shrink-0 z-30 overflow-visible mt-auto">
+            // Added pb-[max(20px,env(safe-area-inset-bottom))] to handle iPhone Home Bar without hiding content
+            <footer className="h-20 bg-gray-900 rounded-t-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex items-center justify-center relative shrink-0 z-30 overflow-visible mt-auto pb-[env(safe-area-inset-bottom)]">
                 
                 {/* Metallic Accent Line */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/4 h-1 bg-gray-700 rounded-b-full opacity-50"></div>
@@ -785,7 +787,7 @@ export default function App() {
                 </div>
 
                 {/* The Shutter Button Container (Popping Out) */}
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 p-1.5 bg-gray-900 rounded-full shadow-xl">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 p-1.5 bg-gray-900 rounded-full shadow-xl z-50">
                     <button 
                         onClick={() => setAppState(AppState.CAMERA)}
                         className="w-20 h-20 rounded-full bg-gradient-to-b from-gray-200 to-gray-400 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_10px_rgba(0,0,0,0.4)] flex items-center justify-center group active:scale-95 transition-all transform cursor-pointer relative"
@@ -799,7 +801,7 @@ export default function App() {
                              {/* Gloss */}
                              <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full"></div>
                              {/* Camera Icon */}
-                             <svg className="w-7 h-7 text-white drop-shadow-md opacity-90 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <svg className="w-8 h-8 text-white drop-shadow-md opacity-90 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
