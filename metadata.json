@@ -1,0 +1,7 @@
+{
+  "name": "Dein Erster Pokedex",
+  "description": "Ein kinderfreundlicher Pokedex, der Pokemon mittels Kamera erkennt und spannende Details erzählt.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
