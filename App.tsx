@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { identifyPokemon, searchPokemonByName, generatePokedexSpeech } from './services/geminiService';
 import { getPokemonList } from './services/pokeApiService';
@@ -7,6 +8,7 @@ import { TypeBadge, getTypeColor } from './components/TypeBadge';
 import { StatBar } from './components/StatBar';
 import { CameraView } from './components/CameraView';
 import { getDefensiveWeaknesses, getOffensiveStrengths, getTypeDetails, TYPES } from './utils/typeChart';
+import { getSuggestions, PokemonSuggestion } from './utils/pokemonNames';
 
 enum AppState {
   HOME,
@@ -54,6 +56,7 @@ export default function App() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [history, setHistory] = useState<PokemonData[]>([]);
+  const [suggestions, setSuggestions] = useState<PokemonSuggestion[]>([]);
   
   // State for Type Matrix Accordion
   const [expandedType, setExpandedType] = useState<string | null>(null);
@@ -245,6 +248,8 @@ export default function App() {
     setIsLoading(true);
     setCapturedImage(null);
     setError(null);
+    setSuggestions([]); // Clear suggestions
+    setSearchQuery(name); // Update input
     try {
         const data = await searchPokemonByName(name);
         if (data) {
@@ -292,6 +297,16 @@ export default function App() {
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    if (value.length >= 2) {
+        setSuggestions(getSuggestions(value));
+    } else {
+        setSuggestions([]);
+    }
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     stopAudio();
@@ -299,10 +314,15 @@ export default function App() {
     await loadPokemonData(searchQuery);
   };
 
+  const handleSelectSuggestion = (suggestion: PokemonSuggestion) => {
+      loadPokemonData(suggestion.name);
+  };
+
   const resetHome = () => {
     stopAudio();
     setAppState(AppState.HOME);
     setSearchQuery("");
+    setSuggestions([]);
     setError(null);
   };
 
@@ -311,8 +331,9 @@ export default function App() {
     <div className="h-[100dvh] w-full bg-gradient-to-br from-indigo-100 via-purple-50 to-blue-100 animate-gradient-xy flex justify-center selection:bg-red-200">
       <div className="w-full max-w-lg bg-white/40 backdrop-blur-xl shadow-2xl relative flex flex-col h-full overflow-hidden">
       
-        {/* === HEADER (Slim Design) === */}
-        <header className="bg-gradient-to-b from-red-600 to-red-700 py-3 px-4 shadow-md relative z-20 shrink-0">
+        {/* === HEADER (Slim Design with Safe Area Support) === */}
+        {/* Added pt-[max(12px,env(safe-area-inset-top))] to handle Notch/Status Bar on Mobile PWA */}
+        <header className="bg-gradient-to-b from-red-600 to-red-700 pt-[max(12px,env(safe-area-inset-top))] pb-3 px-4 shadow-md relative z-20 shrink-0">
             {/* Glossy Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
 
@@ -372,16 +393,17 @@ export default function App() {
                     <div className="flex flex-col gap-5 mt-1 animate-slide-up">
                         
                         {/* Search Input (Floating Glass) */}
-                        <div className="relative group mx-1">
+                        <div className="relative group mx-1 z-50">
                             <div className="absolute -inset-0.5 bg-gradient-to-r from-red-300 to-blue-300 rounded-3xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
                             <div className="relative bg-white rounded-3xl shadow-sm">
                                 <form onSubmit={handleSearch} className="flex gap-2 p-1.5">
                                     <input
                                         type="text"
                                         value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onChange={handleSearchChange}
                                         placeholder="Pokemon suchen..."
                                         className="flex-1 bg-transparent px-4 py-3 focus:outline-none font-bold text-gray-700 placeholder-gray-400 text-lg"
+                                        autoComplete="off"
                                     />
                                     <button type="submit" className="bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-colors shadow-md flex items-center justify-center w-14 h-14 shrink-0 active:scale-95">
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -390,6 +412,31 @@ export default function App() {
                                     </button>
                                 </form>
                             </div>
+
+                            {/* Typeahead Suggestions Dropdown */}
+                            {suggestions.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 mt-3 bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-slide-up origin-top">
+                                    <div className="max-h-60 overflow-y-auto no-scrollbar">
+                                        {suggestions.map((suggestion) => (
+                                            <div 
+                                                key={suggestion.id}
+                                                onClick={() => handleSelectSuggestion(suggestion)}
+                                                className="flex items-center gap-4 p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-0 transition-colors active:bg-blue-100"
+                                            >
+                                                <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center shrink-0 border border-gray-200">
+                                                    <img 
+                                                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${suggestion.id}.png`}
+                                                        alt={suggestion.name}
+                                                        className="w-8 h-8 object-contain"
+                                                        loading="lazy"
+                                                    />
+                                                </div>
+                                                <span className="font-bold text-gray-700 text-lg">{suggestion.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* History Section (Carousel) */}
