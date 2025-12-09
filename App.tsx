@@ -655,21 +655,6 @@ export default function App() {
                                 <span className="block text-gray-400 font-mono text-sm font-black tracking-widest mb-1">#{String(currentPokemon.id).padStart(3, '0')}</span>
                                 <h2 className="text-4xl font-black text-gray-800 drop-shadow-sm leading-none tracking-tight mb-2">{currentPokemon.germanName}</h2>
                                 
-                                {/* Chips: Category & Abilities */}
-                                <div className="flex justify-center gap-2 mb-3 flex-wrap">
-                                    {currentPokemon.category && (
-                                        <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-200">
-                                            {currentPokemon.category}
-                                        </span>
-                                    )}
-                                    {currentPokemon.abilities?.map(ability => (
-                                        <span key={ability} className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold border border-blue-100 flex items-center gap-1">
-                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                            {ability}
-                                        </span>
-                                    ))}
-                                </div>
-
                                 <div className="flex justify-center gap-2 mb-4 flex-wrap">
                                     {currentPokemon.types.map((type) => (
                                         <TypeBadge key={type} type={type} size="md" showLabel />
