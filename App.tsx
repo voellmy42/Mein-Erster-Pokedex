@@ -56,6 +56,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [history, setHistory] = useState<PokemonData[]>([]);
   const [suggestions, setSuggestions] = useState<PokemonSuggestion[]>([]);
+  const [isShiny, setIsShiny] = useState(false);
   
   // State for Type Matrix Accordion
   const [expandedType, setExpandedType] = useState<string | null>(null);
@@ -67,7 +68,7 @@ export default function App() {
 
   // Audio State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [isPlayingCry, setIsPlayingCry] = useState(false); // New state for cry animation
+  const [isPlayingCry, setIsPlayingCry] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
@@ -82,6 +83,34 @@ export default function App() {
       }
     }
   }, []);
+
+  // Determine Background Gradient based on Pokemon Type
+  const backgroundGradient = useMemo(() => {
+    if (appState === AppState.DETAIL && currentPokemon) {
+        const type = currentPokemon.types[0]?.toLowerCase() || '';
+        if (type.includes('feuer')) return "from-orange-200 via-red-100 to-yellow-100";
+        if (type.includes('wasser')) return "from-blue-200 via-cyan-100 to-sky-100";
+        if (type.includes('pflanze')) return "from-green-200 via-emerald-100 to-lime-100";
+        if (type.includes('elektro')) return "from-yellow-200 via-amber-100 to-orange-100";
+        if (type.includes('eis')) return "from-cyan-100 via-blue-50 to-white";
+        if (type.includes('kampf')) return "from-orange-200 via-red-100 to-stone-200";
+        if (type.includes('gift')) return "from-purple-200 via-fuchsia-100 to-pink-100";
+        if (type.includes('boden')) return "from-yellow-200 via-orange-100 to-stone-200";
+        if (type.includes('flug')) return "from-sky-200 via-blue-100 to-indigo-100";
+        if (type.includes('psycho')) return "from-pink-200 via-rose-100 to-fuchsia-100";
+        if (type.includes('käfer')) return "from-lime-200 via-green-100 to-yellow-100";
+        if (type.includes('gestein')) return "from-stone-300 via-neutral-200 to-yellow-100";
+        if (type.includes('geist')) return "from-indigo-300 via-purple-200 to-slate-200";
+        if (type.includes('drache')) return "from-violet-300 via-indigo-200 to-purple-200";
+        if (type.includes('unlicht')) return "from-gray-400 via-slate-300 to-zinc-300";
+        if (type.includes('stahl')) return "from-slate-300 via-gray-200 to-zinc-100";
+        if (type.includes('fee')) return "from-pink-200 via-rose-100 to-red-50";
+        if (type.includes('normal')) return "from-stone-200 via-gray-100 to-neutral-100";
+    }
+    // Default
+    return "from-indigo-100 via-purple-50 to-blue-100";
+  }, [appState, currentPokemon]);
+
 
   // Load Pokedex List initially if empty
   const loadMorePokemon = async () => {
@@ -237,6 +266,7 @@ export default function App() {
     setError(null);
     setSuggestions([]); // Clear suggestions
     setSearchQuery(name); // Update input
+    setIsShiny(false); // Reset shiny state
     try {
         const data = await searchPokemonByName(name);
         if (data) {
@@ -256,6 +286,7 @@ export default function App() {
   const loadFromHistory = (pokemon: PokemonData) => {
     stopAudio();
     setCapturedImage(null);
+    setIsShiny(false); // Reset shiny state
     setCurrentPokemon(pokemon);
     addToHistory(pokemon); // Moves to top of history
     setAppState(AppState.DETAIL);
@@ -266,6 +297,7 @@ export default function App() {
     setCapturedImage(`data:image/jpeg;base64,${base64Image}`);
     setIsLoading(true);
     setAppState(AppState.HOME); // Close camera view while loading
+    setIsShiny(false);
     
     try {
       const data = await identifyPokemon(base64Image);
@@ -311,11 +343,12 @@ export default function App() {
     setSearchQuery("");
     setSuggestions([]);
     setError(null);
+    setIsShiny(false);
   };
 
   return (
     // Use 100dvh for mobile browsers to avoid issues with address bar
-    <div className="h-[100dvh] w-full bg-gradient-to-br from-indigo-100 via-purple-50 to-blue-100 animate-gradient-xy flex justify-center selection:bg-red-200">
+    <div className={`h-[100dvh] w-full bg-gradient-to-br ${backgroundGradient} animate-gradient-xy flex justify-center selection:bg-red-200 transition-colors duration-1000 ease-in-out`}>
       <div className="w-full max-w-lg bg-white/40 backdrop-blur-xl shadow-2xl relative flex flex-col h-full overflow-hidden">
       
         {/* === HEADER (Slim Design with Safe Area Support) === */}
@@ -637,14 +670,36 @@ export default function App() {
                                 <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="flex flex-col items-center justify-center w-full h-full relative z-10">
+                                     {/* SHINY TOGGLE BUTTON */}
+                                     <button
+                                        onClick={() => setIsShiny(!isShiny)}
+                                        className="absolute top-3 right-3 z-30 bg-white/50 backdrop-blur-md p-2 rounded-full shadow-sm border border-white/50 hover:bg-white transition-colors"
+                                        title={isShiny ? "Normal" : "Shiny"}
+                                     >
+                                        <svg className={`w-5 h-5 ${isShiny ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                        </svg>
+                                     </button>
+
                                      <img 
-                                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${currentPokemon.id}.png`}
+                                        key={isShiny ? 'shiny' : 'normal'}
+                                        src={isShiny 
+                                            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${currentPokemon.id}.png`
+                                            : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${currentPokemon.id}.png`
+                                        }
                                         alt={currentPokemon.name}
-                                        className="h-48 w-48 object-contain drop-shadow-2xl z-20"
+                                        className="h-48 w-48 object-contain drop-shadow-2xl z-20 animate-fade-in"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).style.display = 'none';
                                         }}
                                     />
+                                    {isShiny && (
+                                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                                             {/* Shiny Sparkles */}
+                                             <div className="w-6 h-6 absolute top-10 right-20 text-yellow-400 animate-pulse">✨</div>
+                                             <div className="w-4 h-4 absolute bottom-10 left-20 text-yellow-400 animate-pulse delay-75">✨</div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
