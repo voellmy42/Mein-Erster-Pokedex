@@ -32,16 +32,20 @@ export interface EvolutionStage {
   name: string;
   germanName: string;
   id: number;
+  condition?: string; // e.g., "Lvl 16", "Blattstein", "Tausch"
 }
 
 export interface PokemonData {
   id: number;
   name: string;
   germanName: string;
+  category: string; // e.g. "Samen-Pokémon"
   types: string[];
   description: string;
   height: string;
   weight: string;
+  abilities: string[]; // e.g. ["Notdünger"]
+  locations: string[]; // e.g. ["Karmesin: Zone Süd 1"]
   stats: PokemonStats;
   evolutionChain: EvolutionStage[];
   wikiUrl?: string;

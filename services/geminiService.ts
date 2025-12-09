@@ -22,6 +22,10 @@ const pokemonSchema: Schema = {
       type: Type.STRING,
       description: "German name of the Pokemon (e.g., 'Glurak' for Charizard)",
     },
+    category: {
+      type: Type.STRING,
+      description: "The category of the Pokemon in German (e.g., 'Echsen-Pokémon' for Charmander). Keep it short.",
+    },
     types: {
       type: Type.ARRAY,
       items: { type: Type.STRING },
@@ -29,7 +33,7 @@ const pokemonSchema: Schema = {
     },
     description: {
       type: Type.STRING,
-      description: "A comprehensive Pokedex entry description in German, similar to a PokeWiki entry. Limit to 3 sentences.",
+      description: "A comprehensive Pokedex entry description in German, similar to a PokeWiki entry. Limit to 2 sentences.",
     },
     height: {
       type: Type.STRING,
@@ -38,6 +42,16 @@ const pokemonSchema: Schema = {
     weight: {
       type: Type.STRING,
       description: "Weight in kilograms (e.g., '90.5 kg')",
+    },
+    abilities: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      description: "List of abilities (Fähigkeiten) in German. Limit to the 2 most common ones.",
+    },
+    locations: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      description: "Where to find this Pokemon in the latest games (Gen 9 if possible). E.g., 'Karmesin: Südliche Zone 1', 'Schwert: Route 4'. Limit to 2 entries.",
     },
     stats: {
       type: Type.OBJECT,
@@ -58,14 +72,15 @@ const pokemonSchema: Schema = {
         properties: {
           name: { type: Type.STRING, description: "English name" },
           germanName: { type: Type.STRING, description: "German name" },
-          id: { type: Type.INTEGER, description: "National Pokedex ID" }
+          id: { type: Type.INTEGER, description: "National Pokedex ID" },
+          condition: { type: Type.STRING, description: "Short condition to evolve TO this stage from the previous one (in German). E.g. 'Lvl 16', 'Feuerstein', 'Tausch'. Leave empty for the first stage." }
         },
         required: ["name", "germanName", "id"]
       },
-      description: "List of evolution stages (full chain) including their English name, German name, and ID.",
+      description: "List of evolution stages (full chain) including their English name, German name, ID, and evolution condition.",
     },
   },
-  required: ["found", "id", "name", "germanName", "types", "description", "height", "weight", "stats", "evolutionChain"],
+  required: ["found", "id", "name", "germanName", "category", "types", "description", "height", "weight", "abilities", "locations", "stats", "evolutionChain"],
 };
 
 export const identifyPokemon = async (imageBase64: string): Promise<PokemonData | null> => {
@@ -88,7 +103,7 @@ export const identifyPokemon = async (imageBase64: string): Promise<PokemonData 
       config: {
         responseMimeType: "application/json",
         responseSchema: pokemonSchema,
-        systemInstruction: "You are a Pokedex expert with knowledge from PokeWiki.de. You only speak German for descriptions and names unless asked otherwise.",
+        systemInstruction: "You are a Pokedex expert with knowledge from PokeWiki.de. You only speak German.",
       },
     });
 
@@ -113,7 +128,7 @@ export const searchPokemonByName = async (name: string): Promise<PokemonData | n
       config: {
         responseMimeType: "application/json",
         responseSchema: pokemonSchema,
-        systemInstruction: "You are a Pokedex expert with knowledge from PokeWiki.de. You only speak German for descriptions and names.",
+        systemInstruction: "You are a Pokedex expert with knowledge from PokeWiki.de. You only speak German.",
       },
     });
 
@@ -141,7 +156,7 @@ export const generatePokedexSpeech = async (text: string): Promise<string | unde
         responseModalities: [Modality.AUDIO],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Fenrir' }, // Fenrir is a deeper male voice, better suited for a "Professor/Pokedex" persona
+            prebuiltVoiceConfig: { voiceName: 'Fenrir' }, // Fenrir is a deeper male voice
           },
         },
       },

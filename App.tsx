@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { identifyPokemon, searchPokemonByName, generatePokedexSpeech } from './services/geminiService';
 import { getPokemonList } from './services/pokeApiService';
@@ -187,23 +186,11 @@ export default function App() {
       };
       
       // Construct the text to be spoken
-      let textToSpeak = `${currentPokemon.germanName}. ${currentPokemon.description} `;
+      let textToSpeak = `${currentPokemon.germanName}. ${currentPokemon.category}. ${currentPokemon.description} `;
       
       // Add Type info
       const typesFormatted = formatList(currentPokemon.types);
       textToSpeak += `Es ist vom Typ ${typesFormatted}. `;
-
-      // Add Battle Analysis
-      // Limit to 4 to avoid overly long lists in speech
-      if (strengths.length > 0) {
-        const s = formatList(strengths.slice(0, 4));
-        textToSpeak += `Dieses Pokémon ist besonders stark gegen ${s}. `;
-      }
-
-      if (weaknesses.length > 0) {
-        const w = formatList(weaknesses.slice(0, 4));
-        textToSpeak += `Es ist anfällig für Attacken vom Typ ${w}. `;
-      }
 
       const base64Audio = await generatePokedexSpeech(textToSpeak);
 
@@ -642,7 +629,7 @@ export default function App() {
                     <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-white overflow-hidden animate-scale-in">
                         
                         {/* Image Section */}
-                        <div className="w-full h-64 bg-gradient-to-b from-gray-50 to-white relative flex items-center justify-center overflow-visible">
+                        <div className="w-full h-56 bg-gradient-to-b from-gray-50 to-white relative flex items-center justify-center overflow-visible">
                             {/* Radial Glow */}
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-100/50 via-transparent to-transparent opacity-70"></div>
                             
@@ -653,7 +640,7 @@ export default function App() {
                                      <img 
                                         src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${currentPokemon.id}.png`}
                                         alt={currentPokemon.name}
-                                        className="h-56 w-56 object-contain drop-shadow-2xl z-20"
+                                        className="h-48 w-48 object-contain drop-shadow-2xl z-20"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).style.display = 'none';
                                         }}
@@ -664,9 +651,25 @@ export default function App() {
 
                         {/* Info Header */}
                         <div className="px-5 -mt-4 relative z-10 pb-8">
-                            <div className="text-center mb-4">
+                            <div className="text-center mb-2">
                                 <span className="block text-gray-400 font-mono text-sm font-black tracking-widest mb-1">#{String(currentPokemon.id).padStart(3, '0')}</span>
                                 <h2 className="text-4xl font-black text-gray-800 drop-shadow-sm leading-none tracking-tight mb-2">{currentPokemon.germanName}</h2>
+                                
+                                {/* Chips: Category & Abilities */}
+                                <div className="flex justify-center gap-2 mb-3 flex-wrap">
+                                    {currentPokemon.category && (
+                                        <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-200">
+                                            {currentPokemon.category}
+                                        </span>
+                                    )}
+                                    {currentPokemon.abilities?.map(ability => (
+                                        <span key={ability} className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold border border-blue-100 flex items-center gap-1">
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                            {ability}
+                                        </span>
+                                    ))}
+                                </div>
+
                                 <div className="flex justify-center gap-2 mb-4 flex-wrap">
                                     {currentPokemon.types.map((type) => (
                                         <TypeBadge key={type} type={type} size="md" showLabel />
@@ -719,11 +722,69 @@ export default function App() {
                                 </button>
                             </div>
 
+                            {/* Evolutions (Prominent Placement) */}
+                            {currentPokemon.evolutionChain.length > 1 && (
+                                <div className="mb-6 bg-gray-50/80 rounded-2xl p-4 border border-gray-100">
+                                    <h3 className="text-xs font-black text-gray-400 mb-3 uppercase tracking-widest text-center">Entwicklungsreihe</h3>
+                                    <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar py-1">
+                                        {currentPokemon.evolutionChain.map((evo, index) => (
+                                            <React.Fragment key={evo.id}>
+                                                <div 
+                                                    className="flex flex-col items-center gap-1 cursor-pointer group shrink-0"
+                                                    onClick={() => loadPokemonData(evo.germanName)}
+                                                >
+                                                    <div className={`w-16 h-16 rounded-full border-4 flex items-center justify-center bg-white transition-all duration-300 transform group-hover:scale-110 group-active:scale-95 ${evo.germanName === currentPokemon.germanName ? 'border-red-500 shadow-lg' : 'border-white shadow-sm'}`}>
+                                                        <img 
+                                                            src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${evo.id}.png`}
+                                                            alt={evo.germanName}
+                                                            className="w-12 h-12 object-contain"
+                                                        />
+                                                    </div>
+                                                    <span className={`text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${evo.germanName === currentPokemon.germanName ? 'text-white bg-red-500' : 'text-gray-400 bg-gray-200'}`}>
+                                                        {evo.germanName}
+                                                    </span>
+                                                </div>
+                                                
+                                                {/* Evolution Condition Arrow */}
+                                                {index < currentPokemon.evolutionChain.length - 1 && (
+                                                    <div className="flex flex-col items-center px-1">
+                                                        <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                                                        {currentPokemon.evolutionChain[index + 1].condition && (
+                                                            <span className="text-[8px] font-bold text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-100 mt-0.5 whitespace-nowrap">
+                                                                {currentPokemon.evolutionChain[index + 1].condition}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Description */}
                             <div className="bg-blue-50/80 p-5 rounded-2xl border border-blue-100 mb-6">
                                 <p className="text-gray-800 leading-relaxed font-bold text-base text-center">
                                     "{currentPokemon.description}"
                                 </p>
                             </div>
+
+                            {/* Locations (New) */}
+                            {currentPokemon.locations && currentPokemon.locations.length > 0 && (
+                                <div className="mb-6">
+                                     <h3 className="text-xs font-black text-gray-400 mb-3 uppercase tracking-widest text-center">Fundorte</h3>
+                                     <div className="space-y-2">
+                                         {currentPokemon.locations.map((loc, idx) => (
+                                             <div key={idx} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                                                 <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                                                     <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                 </div>
+                                                 <span className="text-sm font-bold text-gray-700">{loc}</span>
+                                             </div>
+                                         ))}
+                                     </div>
+                                </div>
+                            )}
 
                             {/* Battle Analysis */}
                             <div className="mb-6">
@@ -760,20 +821,18 @@ export default function App() {
                                 </div>
                             </div>
 
-                            {/* Stats Grid */}
-                            <div className="grid grid-cols-2 gap-3 mb-6">
-                                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
-                                    <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Größe</p>
-                                    <p className="text-xl font-black text-gray-800">{currentPokemon.height}</p>
-                                </div>
-                                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
-                                    <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Gewicht</p>
-                                    <p className="text-xl font-black text-gray-800">{currentPokemon.weight}</p>
-                                </div>
-                            </div>
-
-                            {/* Base Stats */}
+                            {/* Stats Grid (Moved to bottom) */}
                             <div className="mb-6">
+                                <div className="grid grid-cols-2 gap-3 mb-6">
+                                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
+                                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Größe</p>
+                                        <p className="text-xl font-black text-gray-800">{currentPokemon.height}</p>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
+                                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Gewicht</p>
+                                        <p className="text-xl font-black text-gray-800">{currentPokemon.weight}</p>
+                                    </div>
+                                </div>
                                 <h3 className="text-xs font-black text-gray-400 mb-3 uppercase tracking-widest text-center">Basiswerte</h3>
                                 <div className="space-y-2 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                                     <StatBar label="KP" value={currentPokemon.stats.hp} color="bg-red-500" />
@@ -785,34 +844,6 @@ export default function App() {
                                 </div>
                             </div>
 
-                            {/* Evolutions */}
-                            <div className="mb-2">
-                                <h3 className="text-xs font-black text-gray-400 mb-4 uppercase tracking-widest text-center">Entwicklungsreihe</h3>
-                                <div className="flex items-center justify-center gap-4 py-2 overflow-x-auto no-scrollbar">
-                                    {currentPokemon.evolutionChain.map((evo, index) => (
-                                        <React.Fragment key={evo.id}>
-                                            <div 
-                                                className="flex flex-col items-center gap-2 cursor-pointer group"
-                                                onClick={() => loadPokemonData(evo.germanName)}
-                                            >
-                                                <div className={`w-20 h-20 rounded-full border-4 flex items-center justify-center bg-white transition-all duration-300 transform group-hover:scale-110 group-active:scale-95 ${evo.germanName === currentPokemon.germanName ? 'border-red-500 shadow-xl scale-105' : 'border-white shadow-md'}`}>
-                                                    <img 
-                                                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${evo.id}.png`}
-                                                        alt={evo.germanName}
-                                                        className="w-14 h-14 object-contain"
-                                                    />
-                                                </div>
-                                                <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full ${evo.germanName === currentPokemon.germanName ? 'text-white bg-red-500' : 'text-gray-400 bg-gray-100'}`}>
-                                                    {evo.germanName}
-                                                </span>
-                                            </div>
-                                            {index < currentPokemon.evolutionChain.length - 1 && (
-                                                <div className="w-6 h-1.5 bg-gray-100 rounded-full shrink-0"></div>
-                                            )}
-                                        </React.Fragment>
-                                    ))}
-                                </div>
-                            </div>
                         </div>
                     </div>
                 )}
