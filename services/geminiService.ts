@@ -1,7 +1,21 @@
 import { GoogleGenAI, Type, Schema, Modality } from "@google/genai";
 import { PokemonData } from "../types";
 
-const genAI = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazy initialization to prevent app crash if API key is missing at startup
+let genAI: GoogleGenAI | null = null;
+
+const getGenAI = () => {
+  if (!genAI) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      console.error("Gemini API Key is missing! Check your .env file or environment variables.");
+      // We don't throw here to allow app to load, but calls will fail
+      throw new Error("Gemini API Key is missing. Please add VITE_GEMINI_API_KEY or GEMINI_API_KEY to your environment.");
+    }
+    genAI = new GoogleGenAI({ apiKey });
+  }
+  return genAI;
+};
 
 const pokemonSchema: Schema = {
   type: Type.OBJECT,
@@ -85,7 +99,8 @@ const pokemonSchema: Schema = {
 
 export const identifyPokemon = async (imageBase64: string): Promise<PokemonData | null> => {
   try {
-    const response = await genAI.models.generateContent({
+    const ai = getGenAI();
+    const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: {
         parts: [
@@ -122,7 +137,8 @@ export const identifyPokemon = async (imageBase64: string): Promise<PokemonData 
 
 export const searchPokemonByName = async (name: string): Promise<PokemonData | null> => {
   try {
-    const response = await genAI.models.generateContent({
+    const ai = getGenAI();
+    const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Search for data on the Pokemon "${name}". Provide detailed Pokedex data in German.`,
       config: {
@@ -147,7 +163,8 @@ export const searchPokemonByName = async (name: string): Promise<PokemonData | n
 
 export const generatePokedexSpeech = async (text: string): Promise<string | undefined> => {
   try {
-    const response = await genAI.models.generateContent({
+    const ai = getGenAI();
+    const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
       contents: {
         parts: [{ text: text }],
