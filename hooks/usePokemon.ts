@@ -68,8 +68,9 @@ export const usePokemon = () => {
                 setError("Kein Pokémon erkannt. Versuch es nochmal!");
                 setLoading(false);
             }
-        } catch (err) {
-            setError("Fehler bei der Analyse.");
+        } catch (err: any) {
+            console.error("Analysis Error:", err);
+            setError(err.message || "Fehler bei der Analyse.");
             setLoading(false);
         }
     };
