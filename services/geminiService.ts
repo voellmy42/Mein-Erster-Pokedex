@@ -46,7 +46,7 @@ export const identifyPokemon = async (imageBase64: string): Promise<Identificati
   try {
     const ai = getGenAI();
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: {
         parts: [
           {
