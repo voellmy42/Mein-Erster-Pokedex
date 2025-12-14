@@ -59,17 +59,16 @@ const parseStats = (stats: any[]): PokemonStats => {
   };
 };
 
-// Recursive function to parse evolution chain
-const parseEvolutionChain = async (chain: any): Promise<EvolutionStage[]> => {
-  const stages: EvolutionStage[] = [];
+// recursive function to parse evolution chain
+const parseEvolutionChain = async (chain: any, targetId: number): Promise<EvolutionStage[]> => {
+  let targetPath: EvolutionStage[] = [];
 
-  const traverse = async (node: any) => {
+  const traverse = async (node: any, currentPath: EvolutionStage[]): Promise<boolean> => {
     // Get ID from URL
     const id = parseInt(node.species.url.split('/').filter(Boolean).pop() || '0');
 
-    // We need the German name for this node. logic similar to getPokemonDetails but lighter?
-    // Actually we can just use our local list if ID is valid
-    let germanName = GERMAN_POKEMON_NAMES[id - 1] || node.species.name;
+    // We need the German name for this node.
+    const germanName = GERMAN_POKEMON_NAMES[id - 1] || node.species.name;
 
     // Parse condition
     let condition = "";
@@ -77,34 +76,92 @@ const parseEvolutionChain = async (chain: any): Promise<EvolutionStage[]> => {
       const details = node.evolution_details[0];
       if (details.min_level) condition += `Lvl ${details.min_level}`;
       if (details.item) {
-        // We'd ideally need to fetch item name in German, but English/Internal is fallback
         condition += details.item.name;
       }
       if (details.trigger?.name === 'trade') condition = "Tausch";
-      // Simplified for now
     }
 
-    stages.push({
+    const stage: EvolutionStage = {
       name: node.species.name,
       germanName: germanName,
       id: id,
       condition: condition || undefined
-    });
+    };
 
+    const newPath = [...currentPath, stage];
+
+    // If this node is our target, we found the path!
+    if (id === targetId) {
+      targetPath = newPath;
+      return true; // Stop searching? We might want to see if it evolves further technically, but for "lineage up to here" no. 
+      // Actually, we want the FULL chain involving this pokemon. 
+      // i.e. past -> present -> future.
+      // If we are at target, we should continue down the first branch to show future evolutions?
+      // Or does the user expected to see SQUIRTLE -> WARTORTLE -> BLASTOISE even if they are at WARTORTLE? Yes.
+    }
+
+    // Check if any child leads to target
     if (node.evolves_to && node.evolves_to.length > 0) {
-      // Handle branching? For now just take the first path to keep UI simple
-      // or handle all. The UI expects a flat list "EvolutionChain". 
-      // If we flatten a tree, we might have issues.
-      // But simple linear view is mostly what simple Pokedexes do or show branching.
-      // Let's just follow the first child for linear view, or try to handle multiple?
-      // The Type definition is EvolutionStage[], implied linear.
-      // Let's just follow the first one for MVP to avoid UI explosion.
-      await traverse(node.evolves_to[0]);
+      for (const child of node.evolves_to) {
+        const found = await traverse(child, newPath);
+        if (found) {
+          // If this child path contains our target, we are on the right track.
+          // But we need to make sure we bubble up the full path.
+          // valid path is already set in targetPath by the recursive call if it found it *at the bottom* or *in the middle*.
+          return true;
+        }
+      }
+    }
+
+    // If we are here, we are a leaf or no children led to target.
+    // However, if we ARE the target (checked above), we might have children. 
+    // If we found the target earlier in this specific call stack (top-down), we need to decide what to show as "future".
+    // For simplicity: If I am the target, I take the first child's path as my "future" to show what I evolve into.
+
+    // RE-THINK:
+    // We want to find the linear chain that INCLUDES the targetId.
+    // 1. Build the tree/paths. 
+    // 2. Select path containing targetId.
+    // 3. If targetId is root, we might have multiple paths. Default to first.
+
+    // Let's change strategy: Collect ALL full paths (leaf to root). Then pick the one with proper ID.
+    return false;
+  };
+
+  // Strategy: Traverse and collect all possible linear chains (root -> leaf)
+  const allChains: EvolutionStage[][] = [];
+
+  const collectChains = async (node: any, currentChain: EvolutionStage[]) => {
+    const id = parseInt(node.species.url.split('/').filter(Boolean).pop() || '0');
+    const germanName = GERMAN_POKEMON_NAMES[id - 1] || node.species.name;
+
+    let condition = "";
+    if (node.evolution_details && node.evolution_details.length > 0) {
+      const details = node.evolution_details[0];
+      if (details.min_level) condition += `Lvl ${details.min_level}`;
+      if (details.item) condition += details.item.name;
+      if (details.trigger?.name === 'trade') condition = "Tausch";
+    }
+
+    const stage = { name: node.species.name, germanName, id, condition: condition || undefined };
+    const newChain = [...currentChain, stage];
+
+    if (!node.evolves_to || node.evolves_to.length === 0) {
+      allChains.push(newChain);
+    } else {
+      for (const child of node.evolves_to) {
+        await collectChains(child, newChain);
+      }
     }
   };
 
-  await traverse(chain);
-  return stages;
+  await collectChains(chain, []);
+
+  // Find chain containing targetId
+  const matchingChain = allChains.find(c => c.some(s => s.id === targetId));
+
+  // Fallback to first chain if not found (or if target is root, any chain works, but first is standard)
+  return matchingChain || allChains[0] || [];
 };
 
 export const getPokemonDetails = async (id: number): Promise<PokemonData | null> => {
@@ -123,7 +180,8 @@ export const getPokemonDetails = async (id: number): Promise<PokemonData | null>
     // Fetch Evolution Chain
     const evoRes = await fetch(species.evolution_chain.url);
     const evoData = await evoRes.json();
-    const evolutionChain = await parseEvolutionChain(evoData.chain);
+    // Pass current ID to find correct branch
+    const evolutionChain = await parseEvolutionChain(evoData.chain, id);
 
     // Fetch Types (German)
     const typePromises = pokemon.types.map(async (t: any) => {
