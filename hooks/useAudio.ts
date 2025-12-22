@@ -31,8 +31,11 @@ function decodeBase64(base64: string) {
     return bytes;
 }
 
+const audioCache = new Map<string, string>();
+
 export const useAudio = () => {
     const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+    const [isLoadingAudio, setIsLoadingAudio] = useState(false);
     const [isPlayingCry, setIsPlayingCry] = useState(false);
     const audioContextRef = useRef<AudioContext | null>(null);
     const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -47,14 +50,27 @@ export const useAudio = () => {
             audioSourceRef.current = null;
         }
         setIsPlayingAudio(false);
+        setIsLoadingAudio(false);
         setIsPlayingCry(false);
     };
 
     const playSpeech = async (text: string) => {
         stop();
+        setIsLoadingAudio(true);
         try {
-            const base64Audio = await generatePokedexSpeech(text);
-            if (!base64Audio) return;
+            let base64Audio = audioCache.get(text);
+
+            if (!base64Audio) {
+                base64Audio = await generatePokedexSpeech(text);
+                if (base64Audio) {
+                    audioCache.set(text, base64Audio);
+                }
+            }
+
+            if (!base64Audio) {
+                setIsLoadingAudio(false);
+                return;
+            }
 
             if (!audioContextRef.current) {
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
@@ -73,9 +89,11 @@ export const useAudio = () => {
 
             audioSourceRef.current = source;
             source.start();
+            setIsLoadingAudio(false);
             setIsPlayingAudio(true);
         } catch (e) {
             console.error("Audio playback failed", e);
+            setIsLoadingAudio(false);
         }
     };
 
@@ -96,6 +114,7 @@ export const useAudio = () => {
 
     return {
         isPlayingAudio,
+        isLoadingAudio,
         isPlayingCry,
         playSpeech,
         playCry,
