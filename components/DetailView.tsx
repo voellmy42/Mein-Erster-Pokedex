@@ -4,6 +4,7 @@ import { useAudio } from '../hooks/useAudio';
 import { TypeBadge } from './TypeBadge';
 import { StatBar } from './StatBar';
 import { getDefensiveWeaknesses, getOffensiveStrengths } from '../utils/typeChart';
+import { useTeam } from '../hooks/useTeam';
 
 interface DetailViewProps {
     pokemon: PokemonData;
@@ -23,6 +24,17 @@ export const DetailView: React.FC<DetailViewProps> = ({
     onSelectPokemon,
 }) => {
     const { isPlayingAudio, isLoadingAudio, isPlayingCry, playSpeech, playCry, stop } = useAudio();
+    const { team, addPokemon, removePokemon, isInTeam } = useTeam();
+    const isMember = isInTeam(pokemon.id);
+    const isTeamFull = team.length >= 6;
+
+    const toggleTeam = () => {
+        if (isMember) {
+            removePokemon(pokemon.id);
+        } else {
+            addPokemon(pokemon);
+        }
+    };
 
     const weaknesses = useMemo(() => getDefensiveWeaknesses(pokemon.types), [pokemon]);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -111,6 +123,35 @@ export const DetailView: React.FC<DetailViewProps> = ({
                             <TypeBadge key={type} type={type} size="md" showLabel />
                         ))}
                     </div>
+
+                    {/* TEAM BUTTON */}
+                    <button
+                        onClick={toggleTeam}
+                        disabled={!isMember && isTeamFull}
+                        className={`mx-auto mb-4 px-4 py-2 rounded-xl flex items-center gap-2 font-black text-xs uppercase tracking-wide transition-all ${isMember
+                            ? 'bg-red-100 text-red-600 border border-red-200 hover:bg-red-200'
+                            : isTeamFull
+                                ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                : 'bg-green-100 text-green-600 border border-green-200 hover:bg-green-200 shadow-sm hover:shadow-md'
+                            }`}
+                    >
+                        {isMember ? (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                                Aus Team entfernen
+                            </>
+                        ) : isTeamFull ? (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                Team Voll
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+                                Ins Team
+                            </>
+                        )}
+                    </button>
                 </div>
 
                 {/* AUDIO CONTROLS */}

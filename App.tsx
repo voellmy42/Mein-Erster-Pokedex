@@ -4,6 +4,7 @@ import { LoadingOverlay } from './components/LoadingOverlay';
 import { TypeBadge, getTypeColor } from './components/TypeBadge';
 import { CameraView } from './components/CameraView';
 import { DetailView } from './components/DetailView';
+import { TeamBuilderView } from './components/TeamBuilderView';
 import { TYPES, getTypeDetails } from './utils/typeChart';
 import { getSuggestions, PokemonSuggestion } from './utils/pokemonNames';
 import { usePokemon } from './hooks/usePokemon';
@@ -14,7 +15,8 @@ enum AppState {
     CAMERA,
     DETAIL,
     TYPE_MATRIX,
-    POKEDEX_LIST
+    POKEDEX_LIST,
+    TEAM_BUILDER
 }
 
 export default function App() {
@@ -370,6 +372,24 @@ export default function App() {
                                             </div>
                                         </div>
                                     </button>
+
+                                    {/* Team Builder Button */}
+                                    <button
+                                        onClick={() => setAppState(AppState.TEAM_BUILDER)}
+                                        className="col-span-2 bg-white rounded-[1.5rem] p-1 shadow-sm hover:shadow-lg transition-all group h-24 active:scale-95"
+                                    >
+                                        <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-[1.2rem] p-3 border border-purple-100/50 flex items-center justify-between h-full px-6">
+                                            <div className="flex flex-col items-start gap-1">
+                                                <span className="block font-black text-gray-800 text-lg group-hover:text-purple-600 transition-colors">Team Planer</span>
+                                                <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wide">Synergie & Tipps</span>
+                                            </div>
+                                            <div className="w-12 h-12 rounded-full bg-white text-purple-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300">
+                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -506,6 +526,11 @@ export default function App() {
                                 onBack={resetHome}
                                 onSelectPokemon={handleSelectPokemonEx}
                             />
+                        )}
+
+                        {/* --- STATE: TEAM BUILDER --- */}
+                        {appState === AppState.TEAM_BUILDER && (
+                            <TeamBuilderView onBack={resetHome} />
                         )}
 
                     </div>
