@@ -69,37 +69,28 @@ const teamAnalysisSchema: Schema = {
           reason: { type: Type.STRING, description: "Explanation of the weakness (in German)." },
         },
         required: ["type", "reason"],
-        weaknesses: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              type: { type: Type.STRING, description: "The Pokemon Type related to this weakness (e.g. 'Wasser')." },
-              reason: { type: Type.STRING, description: "Explanation of the weakness (in German)." },
-            },
-            required: ["type", "reason"],
-          },
-        },
-        suggestion: {
-          type: Type.OBJECT,
-          description: "A concrete suggestion to improve the team by swapping a Pokemon.",
-          properties: {
-            out: { type: Type.STRING, description: "Name of the Pokemon to remove (from the current team)." },
-            in: { type: Type.STRING, description: "Name of a Pokemon to add (that is NOT in the team)." },
-            reason: { type: Type.STRING, description: "Reason for this swap (in German)." },
-          },
-          required: ["out", "in", "reason"],
-        },
       },
-      required: ["score", "summary", "strengths", "weaknesses", "suggestion"],
-    };
+    },
+    suggestion: {
+      type: Type.OBJECT,
+      description: "A concrete suggestion to improve the team by swapping a Pokemon.",
+      properties: {
+        out: { type: Type.STRING, description: "Name of the Pokemon to remove (from the current team)." },
+        in: { type: Type.STRING, description: "Name of a Pokemon to add (that is NOT in the team)." },
+        reason: { type: Type.STRING, description: "Reason for this swap (in German)." },
+      },
+      required: ["out", "in", "reason"],
+    },
+  },
+  required: ["score", "summary", "strengths", "weaknesses", "suggestion"],
+};
 
-    export interface TeamAnalysisResult {
-      score: number;
-summary: string;
-strengths: { type: string; reason: string } [];
-weaknesses: { type: string; reason: string } [];
-suggestion: { out: string; in: string; reason: string };
+export interface TeamAnalysisResult {
+  score: number;
+  summary: string;
+  strengths: { type: string; reason: string }[];
+  weaknesses: { type: string; reason: string }[];
+  suggestion: { out: string; in: string; reason: string };
 }
 
 export interface IdentificationResult {
@@ -144,9 +135,9 @@ export const generatePokedexSpeech = async (text: string): Promise<string | unde
   try {
     const ai = getGenAI();
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-tts", // Kept simple for now
+      model: "gemini-2.5-flash-preview-tts", // Reverting to TTS model
       contents: {
-        parts: [{ text: text }],
+        parts: [{ text: `Lies den folgenden Text vor, als wärst du ein Pokedex (wissenschaftlich, neutral, aber freundlich): ${text}` }],
       },
       config: {
         responseModalities: [Modality.AUDIO],
@@ -165,6 +156,36 @@ export const generatePokedexSpeech = async (text: string): Promise<string | unde
   }
 };
 
+export const streamPokedexSpeech = async function* (text: string): AsyncGenerator<string> {
+  try {
+    const ai = getGenAI();
+    const responseStream = await ai.models.generateContentStream({
+      model: "gemini-2.5-flash-preview-tts", // Reverting to TTS model
+      contents: {
+        parts: [{ text: `Lies den folgenden Text vor, als wärst du ein Pokedex (wissenschaftlich, neutral, aber freundlich): ${text}` }],
+      },
+      config: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: 'Fenrir' },
+          },
+        },
+      },
+    });
+
+    for await (const chunk of responseStream) {
+      const audioData = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (audioData) {
+        yield audioData;
+      }
+    }
+  } catch (error) {
+    console.error("Error streaming speech:", error);
+    throw error;
+  }
+};
+
 export const analyzeTeam = async (team: PokemonData[]): Promise<TeamAnalysisResult> => {
   try {
     const ai = getGenAI();
@@ -174,12 +195,6 @@ export const analyzeTeam = async (team: PokemonData[]): Promise<TeamAnalysisResu
     ).join("\n");
 
     const prompt = `
-      Analysiere dieses Pokemon Team kompetitiv und strategisch.
-      Berücksichtige Typen-Abdeckung (Offensiv & Defensiv), Stats und generelle Synergie.
-      
-      Team:
-      ${teamDescription}
-      
       Analysiere dieses Pokemon Team kompetitiv und strategisch.
       Berücksichtige Typen-Abdeckung (Offensiv & Defensiv), Stats und generelle Synergie.
       Gib EINEN konkreten Vorschlag (Suggestion), welches Pokemon (out) gegen welches andere Pokemon (in) getauscht werden sollte, um das Team signifikant zu verbessern.

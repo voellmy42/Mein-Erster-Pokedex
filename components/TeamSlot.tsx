@@ -13,7 +13,7 @@ export const TeamSlot: React.FC<TeamSlotProps> = ({ pokemon, onRemove, onAdd }) 
         return (
             <button
                 onClick={onAdd}
-                className="aspect-square bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all flex flex-col items-center justify-center gap-2 group active:scale-95"
+                className="aspect-[3/4] bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all flex flex-col items-center justify-center gap-2 group active:scale-95"
             >
                 <div className="w-10 h-10 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@ export const TeamSlot: React.FC<TeamSlotProps> = ({ pokemon, onRemove, onAdd }) 
     }
 
     return (
-        <div className="relative aspect-square bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center p-2 group overflow-hidden">
+        <div className="relative aspect-[3/4] bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center p-2 group overflow-hidden">
             {/* Background Gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 -z-10"></div>
 
@@ -49,14 +49,14 @@ export const TeamSlot: React.FC<TeamSlotProps> = ({ pokemon, onRemove, onAdd }) 
             <img
                 src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`}
                 alt={pokemon.germanName}
-                className="w-20 h-20 object-contain drop-shadow-sm z-10 transition-transform group-hover:scale-110 duration-300"
+                className="w-16 h-16 object-contain drop-shadow-sm z-10 transition-transform group-hover:scale-110 duration-300"
             />
 
-            <span className="font-black text-gray-800 text-xs truncate w-full text-center z-10">
+            <span className="font-black text-gray-800 text-xs truncate w-full text-center z-10 mt-2">
                 {pokemon.germanName}
             </span>
 
-            <div className="flex gap-0.5 mt-1 justify-center w-full z-10">
+            <div className="flex gap-0.5 mt-1.5 justify-center w-full z-10">
                 {pokemon.types.map(t => (
                     <div key={t} className="scale-75 origin-center">
                         <TypeBadge type={t} size="sm" />

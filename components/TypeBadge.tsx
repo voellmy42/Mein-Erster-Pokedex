@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface TypeBadgeProps {
@@ -7,7 +6,7 @@ interface TypeBadgeProps {
   showLabel?: boolean;
 }
 
-// Authentic Pokemon Type Colors (Vibrant & Distinct)
+// Authentic Pokemon Type Colors (Vibrant & Distinct) - Kept for usage in other components (e.g. background bubbles)
 export const getTypeColor = (type: string): string => {
   const t = type.toLowerCase();
   if (t.includes('normal')) return 'bg-[#A8A77A]';
@@ -21,7 +20,7 @@ export const getTypeColor = (type: string): string => {
   if (t.includes('boden')) return 'bg-[#E2BF65]';
   if (t.includes('flug')) return 'bg-[#A98FF3]';
   if (t.includes('psycho')) return 'bg-[#F95587]';
-  if (t.includes('käfer')) return 'bg-[#A6B91A]';
+  if (t.includes('käfer') || t.includes('kaefer')) return 'bg-[#A6B91A]';
   if (t.includes('gestein')) return 'bg-[#B6A136]';
   if (t.includes('geist')) return 'bg-[#735797]';
   if (t.includes('drache')) return 'bg-[#6F35FC]';
@@ -31,96 +30,157 @@ export const getTypeColor = (type: string): string => {
   return 'bg-gray-400';
 };
 
-// High-Fidelity "Authentic" Icons (TCG/GO Style)
+// New High-Fidelity Icons
 const TYPE_ICONS: Record<string, React.ReactNode> = {
   Normal: (
-    <g>
-      <circle cx="12" cy="12" r="8" fillOpacity="0.3" />
-      <circle cx="12" cy="12" r="4" />
-    </g>
+    <>
+      <circle cx="50" cy="50" r="48" fill="#A8A878" />
+      <circle cx="50" cy="50" r="22" stroke="white" strokeWidth="6" fill="none" />
+    </>
   ),
   Feuer: (
-    <path d="M11.51 2.02c0 0 5.86 6.36 5.86 10.96 0 2.87-1.57 5.17-4.43 6.64 2.86-1.07 3.56-4.32 3.12-5.46-.08-.22-.38-.2-.44.03-.43 1.5-1.95 2.58-3.09 2.58-1.55 0-2.31-1.38-2.31-3.21 0-1.3.17-2.12 1.35-3.83.33-.47.04-1.12-.53-1.15-2.73-.13-5.23 2.54-5.23 6.13 0 1.25.31 2.37.81 3.26-.64-.67-1.08-1.57-1.08-2.92 0-3.37 2.66-6.43 2.66-6.43s1.39-2.5 3.31-6.6z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#F08030" />
+      <path d="M50 15C50 15 72 38 72 58C72 70 62 80 50 80C38 80 28 70 28 58C28 45 35 38 35 38L45 45L50 15Z" fill="white" />
+    </>
   ),
   Wasser: (
-    <path d="M12 2.01c-.18 0-.36.08-.48.23-2.7 3.4-6.49 8.24-6.49 12.01 0 3.86 3.14 7 7 7s7-3.14 7-7c0-3.77-3.8-8.61-6.5-12.01-.13-.15-.31-.23-.53-.23zm-.12 3.82c1.76 2.45 4.3 6.09 4.3 8.42 0 2.32-1.89 4.2-4.22 4.2-2.32 0-4.21-1.88-4.21-4.2 0-2.33 2.51-5.96 4.13-8.42z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#6890F0" />
+      <path d="M50 18C50 18 28 48 28 66C28 78 38 85 50 85C62 85 72 78 72 66C72 48 50 18 50 18Z" fill="white" />
+    </>
   ),
   Pflanze: (
-    <path d="M11.93 2.03c-2.85 2.14-2.8 4.79-1.97 6.32-1.9-1.66-4.52-1.12-5.95 1.13-1.39 2.19-.51 5.3 1.94 5.92-.35.53-.54 1.19-.34 2.11.28 1.34 1.16 2.36 2.21 3.01 1.76 1.09 3.86 1.05 3.86 1.05s2.78-.37 4.14-2.18c1.02-1.36.93-3.18.15-4.59 2.47-1.29 2.76-4.7 1.08-6.52-1.59-1.72-4.4-1.63-5.89.54.3-1.44-.08-4.76 1.5-6.57-.46.03-.63-.22-.73-.22z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#78C850" />
+      <path d="M72 28C52 28 32 43 32 68C52 68 72 53 72 28Z" fill="white" />
+      <path d="M32 68L72 28" stroke="#78C850" strokeWidth="4" />
+    </>
   ),
   Elektro: (
-    <path d="M17.42 2.05L6.5 13.5h5.18l-3.32 8.45 10.93-11.45h-5.18z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#F8D030" />
+      <path d="M55 15L30 55H50L45 85L70 45H50L55 15Z" fill="white" />
+    </>
   ),
   Eis: (
-    <path d="M12 2l-2.03 4.18H5.8L7.9 9.9 5.8 14h4.17L12 18.18 14.03 14h4.17l-2.1-4.1 2.1-3.72h-4.17z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#98D8D8" />
+      <path d="M50 20V80M20 50H80M30 30L70 70M70 30L30 70" stroke="white" strokeWidth="8" strokeLinecap="round" />
+    </>
   ),
   Kampf: (
-    <path d="M6.34 2.75a3.64 3.64 0 0 0-3.4 3.64c0 1.25.64 2.36 1.62 3.03l-1.39 2.22 1.98 2.07 1.48-1.48 1.93 1.93 5.48-5.48-1.93-1.93 1.48-1.48-2.07-1.98-2.22 1.39A3.62 3.62 0 0 0 6.34 2.75z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#C03028" />
+      <path d="M30 45V72H70V45L60 35H40L30 45Z" fill="white" />
+      <rect x="37" y="45" width="6" height="15" fill="#C03028" />
+      <rect x="47" y="45" width="6" height="15" fill="#C03028" />
+      <rect x="57" y="45" width="6" height="15" fill="#C03028" />
+    </>
   ),
   Gift: (
-    <path d="M11.9 2.1a4.9 4.9 0 0 0-3.8 1.8 4.9 4.9 0 0 0 1.5 7.4l-.4 5.3h5.4l-.4-5.3A4.9 4.9 0 0 0 15.7 3.9a4.9 4.9 0 0 0-3.8-1.8zm-3.2 11.5l.5 7.4h5.4l.5-7.4H8.7z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#A040A0" />
+      <path d="M50 25C38 25 30 33 30 45C30 55 35 60 40 62V75H60V62C65 60 70 55 70 45C70 33 62 25 50 25Z" fill="white" />
+      <circle cx="42" cy="45" r="3" fill="#A040A0" />
+      <circle cx="58" cy="45" r="3" fill="#A040A0" />
+    </>
   ),
   Boden: (
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4.5 5h3l3.5 6H8l-4 5h11l-3.5-6H17l-4-5z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#E0C068" />
+      <path d="M20 75L40 40L60 75M50 75L75 45L90 75" fill="none" stroke="white" strokeWidth="8" strokeLinejoin="round" />
+    </>
   ),
   Flug: (
-    <path d="M12 3.5s-2.5 2-2.5 5c0 3 2 4.5 2 4.5s-4-1-6 2c-1.5 2.25 0 6 0 6s4.5-2 8-5.5c3.5 3.5 8 5.5 8 5.5s1.5-3.75 0-6c-2-3-6-2-6-2s2-1.5 2-4.5c0-3-2.5-5-2.5-5H12z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#A890F0" />
+      <path d="M20 45C40 30 60 30 80 45L50 70L20 45Z" fill="white" />
+    </>
   ),
   Psycho: (
-    <path d="M21.2 11.8c-.8-5.1-5.3-8.8-10.4-8.8-4.4 0-8.2 2.8-9.8 6.7 1.1-.7 2.5-1.1 3.9-1.1 4 0 7.3 3.3 7.3 7.3 0 .7-.1 1.4-.3 2 .8.1 1.6.1 2.3.1 3.7 0 6.8-2.8 7-6.2zM8 12.8c0-2.3 1.5-4.2 3.6-5 1.5-.6 3.2-.2 4.4.8.8 1.1 1.2 2.5 1 3.9-.6 2.5-3.1 4.2-5.6 3.6-2-.5-3.4-2.1-3.4-4.1z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#F85888" />
+      <path d="M20 50C20 50 35 30 50 30C65 30 80 50 80 50C80 50 65 70 50 70C35 70 20 50 20 50Z" stroke="white" strokeWidth="6" fill="none" />
+      <circle cx="50" cy="50" r="8" fill="white" />
+    </>
   ),
   Käfer: (
-    <path d="M12 3c-3.3 0-6 2.7-6 6 0 .5.1.9.2 1.4L4 12v2h2.2c.4 2.6 2.6 4.6 5.3 4.9V21h1v-2.1c2.7-.3 4.9-2.3 5.3-4.9H20v-2l-2.2-1.6c.1-.5.2-.9.2-1.4 0-3.3-2.7-6-6-6zm0 2c2.2 0 4 1.8 4 4 0 .7-.2 1.4-.6 2H8.6C8.2 10.4 8 9.7 8 9c0-2.2 1.8-4 4-4z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#A8B820" />
+      <path d="M50 30C40 30 35 40 35 55C35 70 40 80 50 80C60 80 65 70 65 55C65 40 60 30 50 30Z" fill="white" />
+      <path d="M35 45L22 40M35 65L22 70M65 45L78 40M65 65L78 70" stroke="white" strokeWidth="4" />
+    </>
   ),
   Gestein: (
-    <path d="M4 18h16l-3-6-4 4-2-2-3 4-4-6L2 18h2zm8-16L7 10h10L12 2z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#B8A038" />
+      <path d="M30 70L25 45L50 22L75 40L70 75L30 70Z" fill="white" />
+    </>
   ),
   Geist: (
-    <path d="M12 2C7.58 2 4 5.58 4 10v9.17c0 .59.75.85 1.11.41l2.44-2.93 2.44 2.93c.36.44 1.11.44 1.47 0l2.44-2.93 2.44 2.93c.36.44 1.11.18 1.11-.41V10c0-4.42-3.58-8-8-8zm-3 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#705898" />
+      <path d="M30 45C30 30 50 20 70 45V68L60 62L50 68L40 62L30 68V45Z" fill="white" />
+      <circle cx="42" cy="45" r="4" fill="#705898" />
+      <circle cx="58" cy="45" r="4" fill="#705898" />
+    </>
   ),
   Drache: (
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 17c-2.33 0-4.32-1.32-5.3-3.26.83-2.26 2.98-3.88 5.5-3.9 2.53.02 4.69 1.66 5.51 3.94-.98 1.93-2.97 3.22-5.29 3.22V19h-.42v.01zm0-9C9.52 10 7.5 7.99 7.5 5.5c0-.28.22-.5.5-.5s.5.22.5.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5c0-.28.22-.5.5-.5s.5.22.5.5c0 2.49-2.02 4.5-4.5 4.5z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#7038F8" />
+      <path d="M30 30C30 30 25 75 50 75C75 75 70 30 70 30L50 50L30 30Z" fill="white" />
+    </>
   ),
   Unlicht: (
-    <path d="M12 2C9.5 2 7.5 3 6 5c3 1 6 4 6 8s-3 7-6 8c1.5 2 3.5 3 6 3 5.5 0 10-4.5 10-10S17.5 2 12 2zm-1 15c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#705848" />
+      <path d="M65 30C50 30 35 45 35 60C35 75 50 85 65 85C55 85 45 75 45 60C45 45 55 30 65 30Z" fill="white" />
+    </>
   ),
   Stahl: (
-    <path d="M12 2l-2.5 5h-5l2.5 5-2.5 5h5l2.5 5 2.5-5h5l-2.5-5 2.5-5h-5z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#B8B8D0" />
+      <circle cx="50" cy="50" r="18" stroke="white" strokeWidth="8" fill="none" />
+      <path d="M50 12V30M50 70V88M12 50H30M70 50H88M23 23L35 35M65 65L77 77" stroke="white" strokeWidth="6" strokeLinecap="round" />
+    </>
   ),
   Fee: (
-    <path d="M12 2l-3 6-6.5.5 5 4.5-1.5 6 6-3.5 6 3.5-1.5-6 5-4.5-6.5-.5z" />
+    <>
+      <circle cx="50" cy="50" r="48" fill="#EE99AC" />
+      <path d="M50 20L58 40H80L63 52L70 75L50 60L30 75L37 52L20 40H42L50 20Z" fill="white" />
+    </>
   )
 };
 
 export const TypeBadge: React.FC<TypeBadgeProps> = ({ type, size = 'md', showLabel = false }) => {
-  const colorClass = getTypeColor(type);
-  const icon = TYPE_ICONS[type] || TYPE_ICONS['Normal'];
-  
+  const normalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+  const icon = TYPE_ICONS[normalizedType] || TYPE_ICONS['Normal'];
+
   const sizeClasses = {
-    sm: { container: 'w-6 h-6', icon: 'w-3.5 h-3.5', text: 'text-[9px]' },
-    md: { container: 'w-8 h-8', icon: 'w-5 h-5', text: 'text-xs' },
-    lg: { container: 'w-10 h-10', icon: 'w-6 h-6', text: 'text-sm' },
-    xl: { container: 'w-14 h-14', icon: 'w-9 h-9', text: 'text-base' }
+    sm: { container: 'w-6 h-6', text: 'text-[9px]' },
+    md: { container: 'w-8 h-8', text: 'text-xs' },
+    lg: { container: 'w-10 h-10', text: 'text-sm' },
+    xl: { container: 'w-14 h-14', text: 'text-base' }
   };
 
-  const { container, icon: iconSize, text } = sizeClasses[size];
+  const { container, text } = sizeClasses[size];
 
   return (
     <div className="inline-flex items-center gap-1.5 group">
-        <div className={`${container} rounded-full ${colorClass} flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.4),0_2px_4px_rgba(0,0,0,0.1)] border-2 border-white/20 shrink-0 transform transition-transform group-hover:scale-110`}>
-            <svg 
-                viewBox="0 0 24 24" 
-                fill="currentColor" 
-                className={`${iconSize} text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]`}
-            >
-                {icon}
-            </svg>
-        </div>
-        {showLabel && (
-            <span className={`font-black text-gray-700 uppercase tracking-tight ${text}`}>
-                {type}
-            </span>
-        )}
+      <div className={`${container} shrink-0 transform transition-transform group-hover:scale-110`}>
+        <svg
+          viewBox="0 0 100 100"
+          className="w-full h-full drop-shadow-md"
+        >
+          {icon}
+        </svg>
+      </div>
+      {showLabel && (
+        <span className={`font-black text-gray-700 uppercase tracking-tight ${text}`}>
+          {type}
+        </span>
+      )}
     </div>
   );
 };
