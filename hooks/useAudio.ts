@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { generatePokedexSpeech } from '../services/geminiService';
+import { useProgress } from './useProgress';
 
 // Helper to decode audio
 async function decodeAudioData(
@@ -41,6 +42,34 @@ export const useAudio = () => {
     const scheduledSourcesRef = useRef<AudioBufferSourceNode[]>([]);
     const nextStartTimeRef = useRef<number>(0);
 
+    const [progress, setProgress] = useState(0);
+    const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    const startProgressSimulation = () => {
+        setProgress(0);
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+
+        let currentProgress = 0;
+        progressIntervalRef.current = setInterval(() => {
+            currentProgress += (90 - currentProgress) * 0.1; // Approach 90%
+            // If we are very close to 90, just creep slowly
+            if (currentProgress > 89) {
+                currentProgress += 0.1;
+            }
+            if (currentProgress > 95) currentProgress = 95; // Hard cap at 95 until real data
+
+            setProgress(Math.round(currentProgress));
+        }, 200);
+    };
+
+    const stopProgressSimulation = () => {
+        if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+            progressIntervalRef.current = null;
+        }
+        setProgress(0);
+    };
+
     const stop = () => {
         scheduledSourcesRef.current.forEach(source => {
             try {
@@ -52,6 +81,7 @@ export const useAudio = () => {
         scheduledSourcesRef.current = [];
         nextStartTimeRef.current = 0;
 
+        stopProgress();
         setIsPlayingAudio(false);
         setIsLoadingAudio(false);
         setIsPlayingCry(false);
@@ -61,6 +91,7 @@ export const useAudio = () => {
         // Prevent overlapping
         stop();
         setIsLoadingAudio(true);
+        startProgress();
 
         try {
             // Check Cache
@@ -82,6 +113,7 @@ export const useAudio = () => {
 
                 scheduledSourcesRef.current.push(source);
                 source.start();
+                completeProgress();
                 setIsLoadingAudio(false);
                 setIsPlayingAudio(true);
                 return;
@@ -99,12 +131,6 @@ export const useAudio = () => {
 
             nextStartTimeRef.current = audioCtx.currentTime;
 
-            // We need to keep a flag to check if we were stopped during streaming
-            // We can check if scheduledSourcesRef was cleared (length 0) but we might have added sources.
-            // A simple way is to use a local cancel flag if we had an abort controller, but here we can check if playing state was reset?
-            // Safer: ensure we are "active".
-            // Let's assume successful start.
-
             const { streamPokedexSpeech } = await import('../services/geminiService');
             const stream = streamPokedexSpeech(text);
 
@@ -112,12 +138,6 @@ export const useAudio = () => {
             let chunkCount = 0;
 
             for await (const chunk of stream) {
-                // If user stopped playback manually, stop processing
-                // However, we don't have a direct "isStopped" flag accessible here easily unless we used a ref for a "currentPlayId".
-                // For simplicity: if isLoadingAudio fell to false (and we haven't started playing yet?)
-                // Let's just proceed. If `stop()` was called, scheduledSources would be empty. 
-                // We'll clean up properly at the end.
-
                 fullAudioBase64 += chunk;
                 const chunkBytes = decodeBase64(chunk);
                 const audioBuffer = await decodeAudioData(chunkBytes, audioCtx, 24000, 1);
@@ -126,8 +146,6 @@ export const useAudio = () => {
                 source.buffer = audioBuffer;
                 source.connect(audioCtx.destination);
 
-                // Timing
-                // Ensure we don't schedule in the past too far, but chaining is strict
                 const startTime = Math.max(audioCtx.currentTime, nextStartTimeRef.current);
                 source.start(startTime);
                 nextStartTimeRef.current = startTime + audioBuffer.duration;
@@ -137,6 +155,7 @@ export const useAudio = () => {
                 if (chunkCount === 0) {
                     setIsLoadingAudio(false);
                     setIsPlayingAudio(true);
+                    completeProgress(); // Done loading
                 }
                 chunkCount++;
             }
@@ -163,6 +182,7 @@ export const useAudio = () => {
             console.error("Audio playback failed", e);
             setIsLoadingAudio(false);
             setIsPlayingAudio(false);
+            stopProgress();
         }
     };
 
@@ -184,6 +204,7 @@ export const useAudio = () => {
     return {
         isPlayingAudio,
         isLoadingAudio,
+        progress,
         isPlayingCry,
         playSpeech,
         playCry,

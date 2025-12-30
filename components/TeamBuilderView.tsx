@@ -8,6 +8,8 @@ import { usePokemon } from '../hooks/usePokemon';
 import { getPokemonDetails } from '../services/pokeApiService';
 import { analyzeTeam, TeamAnalysisResult as LLMTeamAnalysis } from '../services/geminiService';
 
+import { useProgress } from '../hooks/useProgress';
+
 interface TeamBuilderViewProps {
     onBack: () => void;
 }
@@ -26,6 +28,7 @@ export const TeamBuilderView: React.FC<TeamBuilderViewProps> = ({ onBack }) => {
 
     // Analysis State
     const [analysisResult, setAnalysisResult] = useState<LLMTeamAnalysis | null>(null);
+    const { progress, start: startProgress, complete: completeProgress, stop: stopProgress } = useProgress();
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -44,6 +47,7 @@ export const TeamBuilderView: React.FC<TeamBuilderViewProps> = ({ onBack }) => {
         setIsLoading(true);
         // Reset analysis when team changes
         setAnalysisResult(null);
+        stopProgress();
 
         try {
             const pokemonData = await getPokemonDetails(id);
@@ -63,17 +67,21 @@ export const TeamBuilderView: React.FC<TeamBuilderViewProps> = ({ onBack }) => {
     const handleRemovePokemon = (id: number) => {
         removePokemon(id);
         setAnalysisResult(null);
+        stopProgress();
     };
 
     const handleAnalyze = async () => {
         if (team.length === 0) return;
         setIsAnalyzing(true);
+        startProgress();
         try {
             const result = await analyzeTeam(team);
             setAnalysisResult(result);
+            completeProgress();
         } catch (e) {
             console.error("Analysis failed", e);
             alert("Analyse fehlgeschlagen. Bitte versuche es später erneut.");
+            stopProgress();
         } finally {
             setIsAnalyzing(false);
         }
@@ -135,20 +143,28 @@ export const TeamBuilderView: React.FC<TeamBuilderViewProps> = ({ onBack }) => {
                     <button
                         onClick={handleAnalyze}
                         disabled={team.length === 0 || isAnalyzing}
-                        className={`w-full py-4 rounded-2xl font-black text-lg uppercase tracking-wider shadow-lg flex items-center justify-center gap-3 transition-all ${team.length === 0
-                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                : isAnalyzing
-                                    ? 'bg-indigo-400 text-white cursor-wait'
-                                    : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-xl hover:-translate-y-1 active:scale-95'
+                        className={`w-full py-4 rounded-2xl font-black text-lg uppercase tracking-wider shadow-lg flex items-center justify-center gap-3 transition-all relative overflow-hidden ${team.length === 0
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : isAnalyzing
+                                ? 'bg-indigo-400 text-white cursor-wait'
+                                : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-xl hover:-translate-y-1 active:scale-95'
                             }`}
                     >
+                        {/* Progress Bar Background */}
+                        {isAnalyzing && (
+                            <div
+                                className="absolute left-0 top-0 bottom-0 bg-white/20 transition-all duration-200 ease-out"
+                                style={{ width: `${progress}%` }}
+                            />
+                        )}
+
                         {isAnalyzing ? (
                             <>
                                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                Analysiere...
+                                <span className="relative z-10">Analysiere... {progress}%</span>
                             </>
                         ) : (
                             <>
